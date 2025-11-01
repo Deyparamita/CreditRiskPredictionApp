@@ -38,9 +38,13 @@ df_processed['Checking account'].fillna('no_info', inplace=True)
 df_processed['Saving accounts'].fillna('no_info', inplace=True)
 df_processed.head()
 
+credit_threshold = df['Credit amount'].median()
+duration_threshold = df['Duration'].median()
+print(credit_threshold, duration_threshold)
+
 # Create Target Variable (Risk Column)
 df_processed['Risk'] = np.where(
-    (df['Credit amount'] > 5000) & (df['Duration'] > 24) & (df['Saving accounts'] == 'little'),
+    ((df['Credit amount'] > credit_threshold) & (df['Saving accounts'] == 'little') | (df['Duration'] > duration_threshold) & (df['Saving accounts'] == 'little')),
     0,
     1
 )
@@ -54,7 +58,7 @@ for col in df_processed.select_dtypes(include='object').columns:
     df_processed[col] = le.fit_transform(df_processed[col])
     label_encoders[col] = le   # Save encoders for Streamlit later
 
-# Example: Create a feature "Credit per month"
+# A feature "Credit per month"
 df_processed['Credit_per_month'] = df_processed['Credit amount'] / (df_processed['Duration'] + 1)  # +1 to avoid division by zero
 
 # 3. Splitting Data
